@@ -259,3 +259,40 @@
     }
 })
   this returns the documents with the array satisfing all the queries specified
+
+## Logical Operators in MongoDB
+
+- $and : performs logical *and* operation on the expressions in the array
+- db.colleactionName.find({
+    $and : [{exp1}, {exp2}, ...]
+})
+or
+db.collectionName.find({{exp1}, {exp2}, ...})
+- $or : performs logical *or* operation on the expressions in the array
+- db.collectionName.find({
+    $or : [{exp1}, {exp2}, ...]
+})
+
+### using $and operator with $or operator
+- we can use $and operator with $or operator in MongoDB to filter documents better
+```javascript
+db.collectionName.find({
+    $and : [
+        {
+            $or : [{exp1}, {exp2}, ...]
+        },
+        {
+            $or : [{exp1}, {exp2}, ...]
+        },
+        ...
+    ]
+})
+```
+- we can't use the implicit $and operator syntax here bcz in a single JSON object, no duplicate keys is allowed, so if two $or operators are used then the former $or oprator will be replaced or overwritten by the latter $or operator
+```javascript
+db.collectionName.find({
+        $or : [{exp1}, {exp2}, ...],
+        $or : [{exp1}, {exp2}, ...]
+})
+```
+- when including the same operator more than once in your query, you need to use the explicit $and operator
