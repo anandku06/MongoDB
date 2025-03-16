@@ -227,3 +227,35 @@
   // db.collectionName.find({field : {$in : [value1, value2, etc...]}})
   db.zips.find({ city: { $in: ["Phoenix", "Chicago"] } });
   ```
+
+## Comparison Operators in MongoDB
+
+- **< -> $lt** : returns documents where the field contains a value less than the specified value.
+- **> -> $gt** : returns documents where the field contains a value greater than the specified value.
+- **<=-> $lte** : returns documents less than or equal to a given number.
+- **>=-> $gte** : returns documents greater than or equal to a given number.
+- usage : { field : { operator : value } }
+
+- subfields of any field in a document can be accessed by chaining with dot notation (eg. "items.price")
+
+## Querying arrays in MongoDB
+
+- same using the implicit **$eq** operator for it
+- db.collectionName.find{"arrayName" : "value"} -> returns the documents with the single matching value or an array containing this value
+- but this returns the array as well as the single matching value
+
+* to avoid this using the **$elemMatch** operator with **$eq** operator
+
+- db.collectionName.find{
+  "arrayName" : {
+  $elemMatch : { $eq : value }
+  }
+  } this returns the documents with the array containing the specified value
+
+- multiple queries can be given by seperating them by commas
+- db.collectionName.find({
+    arrayName : {
+        $elemMatch : {query1, query2, query3 ,etc}
+    }
+})
+  this returns the documents with the array satisfing all the queries specified
