@@ -55,3 +55,31 @@
 
 
 ```
+## MongoDB Connection String
+
+- allows us to connect to our cluster and work with our data and options for connecting to our MongoDB Database
+- has two formats for connection string:
+    1. standard format : used to connect to standalone clusters, replica sets, or sharded ckusters
+    2. DNS seed list format
+        - provides a DNS server list to our connection string
+        - Gives more flexibility of deployment
+        - ability to change servers in rotation without reconfiguring clients
+- The connection list from the Atlas dashboard, uses a *DNS seed list entry*, which has a list of hosts that can be connected with.
+    ### Connection String
+    - example of connection string : **mongodb+srv://{username}:{password}@cluster0.usqsf.mongodb.net/?retryWrites=true&w=majority**
+    - begins with the required prefix *mongodb* that identifies it is as a mongoDB connection string,
+    - the *+srv* automatically sets the TLS security option to true and tells mongoDB to use the DNS seed list
+    - then the *username* and *password* of the database in Atlas dashboard
+    - *@cluster0.usqsf.mongodb.net* - host and the optional port number to our database(if not specified then default port number is 27017) 
+    - any extra optional query parameters for additional information : here *retryWrites=true* means to retry the write ops when failed
+
+## MongoDB Shell
+- a NodeJS REPL environment that gives access to JS variables, loops, control structures, etc.
+
+## MongoDB Compass
+- a GUI, that allows us to query and analyse our data, and compose aggregation pipelines
+
+## Connection Errors
+- mainly two types of errors:
+    1. Network Access Errors - If IP Address isn't allowed by the MongoDB
+    2. User Authentication Errors - If anything goes wrong in the connection string
