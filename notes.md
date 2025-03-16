@@ -193,6 +193,37 @@
            },
          ],
          class_id: 271,
-       }
+       },
      ]);
      ```
+
+## Finding documents
+
+- **find()**:
+  - syntax
+  ```javascript
+  db.collectionName.find();
+  ```
+  - use **it** shell directive for more results
+- to find a specific document:
+
+  - for single document finding
+  - **$eq** operator
+
+  ```javascript
+   {field : {$eq : <value>}}
+   // or this
+   {field : <value>}
+
+   // in action
+   db.collectionName.find({field : {$eq : <value>}})
+   db.collectionName.find({field : <value>})
+  ```
+
+- **$in**:
+  - The **$in** operator allows us to select all the documents that have a field value equal to any of the values specified in the array.
+  - multiple documents finding
+  ```javascript
+  // db.collectionName.find({field : {$in : [value1, value2, etc...]}})
+  db.zips.find({ city: { $in: ["Phoenix", "Chicago"] } });
+  ```
