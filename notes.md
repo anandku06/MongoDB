@@ -55,31 +55,144 @@
 
 
 ```
+
 ## MongoDB Connection String
 
 - allows us to connect to our cluster and work with our data and options for connecting to our MongoDB Database
 - has two formats for connection string:
-    1. standard format : used to connect to standalone clusters, replica sets, or sharded ckusters
-    2. DNS seed list format
-        - provides a DNS server list to our connection string
-        - Gives more flexibility of deployment
-        - ability to change servers in rotation without reconfiguring clients
-- The connection list from the Atlas dashboard, uses a *DNS seed list entry*, which has a list of hosts that can be connected with.
-    ### Connection String
-    - example of connection string : **mongodb+srv://{username}:{password}@cluster0.usqsf.mongodb.net/?retryWrites=true&w=majority**
-    - begins with the required prefix *mongodb* that identifies it is as a mongoDB connection string,
-    - the *+srv* automatically sets the TLS security option to true and tells mongoDB to use the DNS seed list
-    - then the *username* and *password* of the database in Atlas dashboard
-    - *@cluster0.usqsf.mongodb.net* - host and the optional port number to our database(if not specified then default port number is 27017) 
-    - any extra optional query parameters for additional information : here *retryWrites=true* means to retry the write ops when failed
+  1. standard format : used to connect to standalone clusters, replica sets, or sharded ckusters
+  2. DNS seed list format
+     - provides a DNS server list to our connection string
+     - Gives more flexibility of deployment
+     - ability to change servers in rotation without reconfiguring clients
+- The connection list from the Atlas dashboard, uses a _DNS seed list entry_, which has a list of hosts that can be connected with.
+  ### Connection String
+  - example of connection string : **mongodb+srv://{username}:{password}@cluster0.usqsf.mongodb.net/?retryWrites=true&w=majority**
+  - begins with the required prefix _mongodb_ that identifies it is as a mongoDB connection string,
+  - the _+srv_ automatically sets the TLS security option to true and tells mongoDB to use the DNS seed list
+  - then the _username_ and _password_ of the database in Atlas dashboard
+  - _@cluster0.usqsf.mongodb.net_ - host and the optional port number to our database(if not specified then default port number is 27017)
+  - any extra optional query parameters for additional information : here _retryWrites=true_ means to retry the write ops when failed
 
 ## MongoDB Shell
+
 - a NodeJS REPL environment that gives access to JS variables, loops, control structures, etc.
 
 ## MongoDB Compass
+
 - a GUI, that allows us to query and analyse our data, and compose aggregation pipelines
 
 ## Connection Errors
+
 - mainly two types of errors:
-    1. Network Access Errors - If IP Address isn't allowed by the MongoDB
-    2. User Authentication Errors - If anything goes wrong in the connection string
+  1. Network Access Errors - If IP Address isn't allowed by the MongoDB
+  2. User Authentication Errors - If anything goes wrong in the connection string
+
+## Inserting documents in MongoDB
+
+- two methods used to insert documents in MongoDB:
+  1. **insertOne()**:
+     - used to insert one document at a time
+     - Syntax { db.collectionName.insertOne() }
+     - if the specified collection name doesn't exist then, mongoDB automatically creates that collection and inserts the data to it.
+     - the document parameters are inserted inside the parenthesis of insertOne method.
+     ```javascript
+     db.grades.insertOne({
+       student_id: 654321,
+       products: [
+         {
+           type: "exam",
+           score: 90,
+         },
+         {
+           type: "homework",
+           score: 59,
+         },
+         {
+           type: "quiz",
+           score: 75,
+         },
+         {
+           type: "homework",
+           score: 88,
+         },
+       ],
+       class_id: 550,
+     });
+     ```
+  2. **insertMany()**:
+     - inserts many document at a time
+     - expects an array of documents
+     - Syntax { db.collectionName.insertMany(
+       (document_1), (document_2), (document_3), etc.
+       ) }
+     ```javascript
+     db.grades.insertMany([
+       {
+         student_id: 546789,
+         products: [
+           {
+             type: "quiz",
+             score: 50,
+           },
+           {
+             type: "homework",
+             score: 70,
+           },
+           {
+             type: "quiz",
+             score: 60,
+           },
+           {
+             type: "exam",
+             score: 80,
+           },
+         ],
+         class_id: 551,
+       },
+       {
+         student_id: 777777,
+         products: [
+           {
+             type: "quiz",
+             score: 50,
+           },
+           {
+             type: "homework",
+             score: 70,
+           },
+           {
+             type: "quiz",
+             score: 60,
+           },
+           {
+             type: "exam",
+             score: 80,
+           },
+         ],
+         class_id: 458,
+       },
+       {
+         student_id: 645372,
+         products: [
+           {
+             type: "quiz",
+             score: 50,
+           },
+           {
+             type: "homework",
+             score: 70,
+           },
+           {
+             type: "quiz",
+             score: 60,
+           },
+           {
+             type: "exam",
+             score: 80,
+           },
+         ],
+         class_id: 271,
+       }
+     ]);
+     ```
