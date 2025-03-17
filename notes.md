@@ -404,3 +404,14 @@ db.books.updateMany(
   { $set: { status: "LEGACY" } }
 )
 ```
+
+## Deleting the document in MongoDB
+
+- Using the **deleteOne()** and **deleteMany()** methods that takes the query parameter to filter out the documents to be deleted
+```javascript
+
+db.podcasts.deleteOne({ _id: Objectid("6282c9862acb966e76bbf20a") })
+
+db.podcasts.deleteMany({category: “crime”})
+
+```
