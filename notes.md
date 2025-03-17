@@ -254,27 +254,29 @@
 
 - multiple queries can be given by seperating them by commas
 - db.collectionName.find({
-    arrayName : {
-        $elemMatch : {query1, query2, query3 ,etc}
-    }
-})
+  arrayName : {
+  $elemMatch : {query1, query2, query3 ,etc}
+  }
+  })
   this returns the documents with the array satisfing all the queries specified
 
 ## Logical Operators in MongoDB
 
-- $and : performs logical *and* operation on the expressions in the array
+- $and : performs logical _and_ operation on the expressions in the array
 - db.colleactionName.find({
-    $and : [{exp1}, {exp2}, ...]
-})
-or
-db.collectionName.find({{exp1}, {exp2}, ...})
-- $or : performs logical *or* operation on the expressions in the array
+  $and : [{exp1}, {exp2}, ...]
+  })
+  or
+  db.collectionName.find({{exp1}, {exp2}, ...})
+- $or : performs logical _or_ operation on the expressions in the array
 - db.collectionName.find({
-    $or : [{exp1}, {exp2}, ...]
-})
+  $or : [{exp1}, {exp2}, ...]
+  })
 
 ### using $and operator with $or operator
+
 - we can use $and operator with $or operator in MongoDB to filter documents better
+
 ```javascript
 db.collectionName.find({
     $and : [
@@ -288,11 +290,117 @@ db.collectionName.find({
     ]
 })
 ```
+
 - we can't use the implicit $and operator syntax here bcz in a single JSON object, no duplicate keys is allowed, so if two $or operators are used then the former $or oprator will be replaced or overwritten by the latter $or operator
+
 ```javascript
 db.collectionName.find({
         $or : [{exp1}, {exp2}, ...],
         $or : [{exp1}, {exp2}, ...]
 })
 ```
+
 - when including the same operator more than once in your query, you need to use the explicit $and operator
+
+## Replacing a document in MongoDB
+
+1. Using the **replaceOne()** method :
+
+- used to replace single document
+- accepts three arguments (filter, replacement, options)
+
+- syntax : db.collectionName.replaceOne()
+
+  - filter : used to filter out the document to be replaced especially by \_id fields
+  - replacement : contains the data to be replaced
+
+- example :
+
+```javascript
+// takes first arg as the _id of the target document
+db.books.replaceOne(
+  {
+    _id: ObjectId("6282afeb441a74a98dbbec4e"),
+  },
+  {
+    title: "Data Science Fundamentals for Python and MongoDB",
+    isbn: "1484235967",
+    publishedDate: new Date("2018-5-10"),
+    thumbnailUrl:
+      "https://m.media-amazon.com/images/I/71opmUBc2wL._AC_UY218_.jpg",
+    authors: ["David Paper"],
+    categories: ["Data Science"],
+  }
+);
+```
+
+## Updating a document in MongoDB
+
+- Using the **updateOne()** method :
+  - updates the single document
+  - takes three arguments -> filter(contains the selectioin criteria of the target document), update(data to be updated), and options object
+  - we use operators like **$set** {adds new fields and values to a document ; Replaces the value of a field with a specified value} and **$push** {appends a value to an array : if absent, $push adds the array field with the value as its element} ; **$each** modifier to add multiple elements to the array
+  - this is possible that the mathcing document may not exist, here **upsert** comes into the picture. (keyword used in options object)
+  - **upsert** : Insert a document with the provided information if matching documents don't exist.
+
+```javascript
+// $set keyword
+db.podcasts.updateOne(
+  {
+    _id: ObjectId("5e8f8f8f8f8f8f8f8f8f8f8"),
+  },
+
+  {
+    $set: {
+      subscribers: 98562,
+    },
+  }
+);
+
+// upsert with $set
+db.podcasts.updateOne(
+  { title: "The Developer Hub" },
+  { $set: { topics: ["databases", "MongoDB"] } },
+  { upsert: true }
+);
+
+// $push keyword
+db.podcasts.updateOne(
+  { _id: ObjectId("5e8f8f8f8f8f8f8f8f8f8f8") },
+  { $push: { hosts: "Nic Raboy" } }
+)
+```
+- Using the **findAndModify()** method :
+  - returns the document that has been recently updated
+  - alternative approach of this can be updateOne() + findOne(), but that's expensive operation as it does two rounds of trip to the server to get the data and there is a chance that the document might be updated before we get the _id of that document
+  - so, its the best approach for it
+  - takes three arguments : 
+    1. query - for filtering the document
+    2. update - data to be updated
+    3. new - boolean value : whether to return the modified document after the update operation or without the update operation
+```javascript
+db.podcasts.findAndModify({
+  query: { _id: ObjectId("6261a92dfee1ff300dc80bf1") },
+  update: { $inc: { subscribers: 1 } },
+  new: true,
+})
+// new is set to true means that it'll return the updated document
+
+```
+
+- Using the updateMany() method : 
+  - takes three args:
+    1. filter document
+    2. update document
+    3. option object
+  
+  - Not an all-or-nothing operation
+  - will not rollback updates
+  - Updates will be visible as soon as they're performed
+  - not appropriate for some use cases
+```javascript
+db.books.updateMany(
+  { publishedDate: { $lt: new Date("2019-01-01") } }, // filter is the data which are less than or before the given date
+  { $set: { status: "LEGACY" } }
+)
+```
