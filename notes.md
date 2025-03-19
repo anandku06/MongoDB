@@ -339,7 +339,7 @@ db.books.replaceOne(
 - Using the **updateOne()** method :
   - updates the single document
   - takes three arguments -> filter(contains the selectioin criteria of the target document), update(data to be updated), and options object
-  - we use operators like **$set** {adds new fields and values to a document ; Replaces the value of a field with a specified value} and **$push** {appends a value to an array : if absent, $push adds the array field with the value as its element} ; **$each** modifier to add multiple elements to the array
+  - we use operators like **$set** {adds new fields and values to a document ; Replaces the value of a field with a specified value} and **$push** {appends a value to an array : if absent, $push adds the array field with the value as its element} ; **$each\*\* modifier to add multiple elements to the array
   - this is possible that the mathcing document may not exist, here **upsert** comes into the picture. (keyword used in options object)
   - **upsert** : Insert a document with the provided information if matching documents don't exist.
 
@@ -368,50 +368,129 @@ db.podcasts.updateOne(
 db.podcasts.updateOne(
   { _id: ObjectId("5e8f8f8f8f8f8f8f8f8f8f8") },
   { $push: { hosts: "Nic Raboy" } }
-)
+);
 ```
+
 - Using the **findAndModify()** method :
   - returns the document that has been recently updated
-  - alternative approach of this can be updateOne() + findOne(), but that's expensive operation as it does two rounds of trip to the server to get the data and there is a chance that the document might be updated before we get the _id of that document
+  - alternative approach of this can be updateOne() + findOne(), but that's expensive operation as it does two rounds of trip to the server to get the data and there is a chance that the document might be updated before we get the \_id of that document
   - so, its the best approach for it
-  - takes three arguments : 
+  - takes three arguments :
     1. query - for filtering the document
     2. update - data to be updated
     3. new - boolean value : whether to return the modified document after the update operation or without the update operation
+
 ```javascript
 db.podcasts.findAndModify({
   query: { _id: ObjectId("6261a92dfee1ff300dc80bf1") },
   update: { $inc: { subscribers: 1 } },
   new: true,
-})
+});
 // new is set to true means that it'll return the updated document
-
 ```
 
-- Using the updateMany() method : 
+- Using the updateMany() method :
+
   - takes three args:
+
     1. filter document
     2. update document
     3. option object
-  
+
   - Not an all-or-nothing operation
   - will not rollback updates
   - Updates will be visible as soon as they're performed
   - not appropriate for some use cases
+
 ```javascript
 db.books.updateMany(
   { publishedDate: { $lt: new Date("2019-01-01") } }, // filter is the data which are less than or before the given date
   { $set: { status: "LEGACY" } }
-)
+);
 ```
 
 ## Deleting the document in MongoDB
 
 - Using the **deleteOne()** and **deleteMany()** methods that takes the query parameter to filter out the documents to be deleted
+
 ```javascript
 
 db.podcasts.deleteOne({ _id: Objectid("6282c9862acb966e76bbf20a") })
 
 db.podcasts.deleteMany({category: “crime”})
+
+```
+
+## Sorting and Limiting Query Results in MongoDB
+
+- **Cursor** :
+  - pointer to the result set of a query
+  - find() returns the cursor that points to the document that matches the query
+  - _Cursor methods_ are chained to queries, perform actions on the result set
+  - using _projections_ to seek the desired field in the document rather than the whole document
+- using the cursor methods like:
+
+  1. cursor.sort() :
+
+  - passing a document to ensure the order of sorting
+  - 1 for ascending, -1 for descending
+  - Alphabetisation in MongoDB means to sort documents in ascending or descending order.
+  - in MongoDB, capital letters are sorted first and grouped together then small letters are sorted and grouped together
+
+  2. cursor.limit()
+
+  - limiting the number of results can improve the performance
+  - passing a document to ensure the sorting order
+  - then, using the limit() method to limit the result set by the integer set at a time
+  - also use projections to get the desired fields in the document.
+
+```javascript
+// syntax for sort()
+  db.collection.find(<query>).sort(<sort>);
+
+// Return data on all music companies, sorted alphabetically from A to Z. Ensure consistent sort order
+  db.companies.find({ category_code: "music" }).sort({ name: 1, _id: 1 });
+
+// syntax for limit() method
+  db.companies.find(<query>).limit(<number>)
+
+// Return the three music companies with the highest number of employees. Ensure consistent sort order.
+db.companies
+  .find({ category_code: "music" })
+  .sort({ number_of_employees: -1, _id: 1 })
+  .limit(3);
+
+```
+
+## Returning selected field from the query
+
+- by default the find() method returns the whole document, whether the user wants the whole or not
+- using Projections: selecting the required fields from the document to format the result better
+- giving an extra argument as a document and key as the field to be displayed
+- value of those field can be 1 or 0 depending on whether the field should be included or excluded from the result
+- inclusion and exclusion statements can't be combined in projections, except _id field
+
+```javascript
+// syntax 
+db.collection.find( <query>, <projection> )
+
+// including a field
+db.collection.find( <query>, { <field> : 1 })
+
+// example
+db.inspections.find(
+  { sector: "Restaurant - 818" },
+  { business_name: 1, result: 1 }
+)
+
+// excluding a field
+db.collection.find(query, { <field> : 0, <field>: 0 })
+
+
+// example
+db.inspections.find(
+  { result: { $in: ["Pass", "Warning"] } },
+  { date: 0, "address.zip": 0 }
+)
 
 ```
