@@ -468,10 +468,10 @@ db.companies
 - using Projections: selecting the required fields from the document to format the result better
 - giving an extra argument as a document and key as the field to be displayed
 - value of those field can be 1 or 0 depending on whether the field should be included or excluded from the result
-- inclusion and exclusion statements can't be combined in projections, except _id field
+- inclusion and exclusion statements can't be combined in projections, except \_id field
 
 ```javascript
-// syntax 
+// syntax
 db.collection.find( <query>, <projection> )
 
 // including a field
@@ -494,3 +494,145 @@ db.inspections.find(
 )
 
 ```
+
+## Counting Documents in MongoDB
+
+- db.collection.countDocuments() method is used to count the documents from a specified query
+- takes two parameters :
+  1. query - for selecting the documents
+  2. options - for counting behaviour
+
+```javascript
+
+// syntax
+db.collection.countDocuments( <query>, <options> )
+
+// Count number of docs in trip collection
+db.trips.countDocuments({})
+
+// Count number of trips over 120 minutes by subscribers
+db.trips.countDocuments({ tripduration: { $gt: 120 }, usertype: "Subscriber" })
+
+```
+
+## Aggregation and Pipelines
+
+- **Aggregation** : An analysis and summary of data
+- **Stage** : An aggregation operation performed on the data ; single operation on the data
+- **Aggregation Pipeline** : A series of completed one at a time, in order
+
+- aggregation() takes an array of aggregation stages to form the pipeline
+
+```javascript
+// syntax
+db.collection.aggregate([
+  {$stage_name : {expression}},
+  {$stage_name : {expression}},
+  {$stage_name : {expression}},
+  ...
+])
+
+// structure of an aggregation pipeline
+db.collection.aggregate([
+    {
+        $stage1: {
+            { expression1 },
+            { expression2 }...
+        },
+        $stage2: {
+            { expression1 }...
+        }
+    }
+])
+```
+
+- '$' is considered as field path; allows us to refer the value of that field
+- commonly used stages are:
+
+  1. $match : filter for data that matches the criteria ; place it as early as possible in the pipelines so it can use indexes
+
+     ```javascript
+     {
+       $match : {
+         "field_name" : "value"
+       }
+     }
+
+     ```
+
+  2. $group : groups documents based on a group key ; creates a single document for each distinct value ; output is one document for each unique value of the group key
+
+     ```javascript
+     {
+       $group : {
+         _id : "expression",
+         "field" : {"accumulator" : "expression"}
+       }
+     }
+
+     ```
+
+     ```javascript
+     // using $match and $group together
+     db.zips.aggregate([
+       {
+         $match: {
+           state: "CA",
+         },
+       },
+       {
+         $group: {
+           _id: "$city",
+           totalZips: { $count: {} },
+         },
+       },
+     ]);
+     ```
+
+  3. $sort : puts the documents in a specific order ; sorts all the input documents and passes them through pipeline in sorted order ; value : 1 for ascending and -1 for descending order
+  4. $limit : limits the number of documents that are passed on to the next aggregation stage
+
+  ```javascript
+  // example of $sort and $limit
+  db.zips.aggregate([
+    {
+      $sort: {
+        pop: -1,
+      },
+    },
+    {
+      $limit: 5,
+    },
+  ]);
+  ```
+
+  5. $set : add or modifies fields in the pipeline ; useful when we want to change existing fields in pipeline or add new ones to be used in upcoming pipeline stages
+  6. $count : counts documents in the pipeline ; returns the total document count
+  7. $project : determines output shape ; projection similar to find() operations ; should be the last stage to format the output
+
+  ```javascript
+  // $project
+  {
+    $project: {
+        state:1,
+        zip:1,
+        population:"$pop",
+        _id:0
+    }
+  }
+
+  // $set
+  {
+    $set : {
+      place : {
+        $concat : ["$city", ",", "$state"]
+      },
+      pop : 10000
+    }
+  }
+
+  // $count
+  {
+    $count :  "total_zips" // field name to be total_zips
+  }
+  ```
