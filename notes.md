@@ -671,3 +671,82 @@ db.collection.aggregate([
     }
   ])
   ```
+
+## Indexes in MongoDB
+
+- special data structures, store small portion of the data
+- ordered and easy to search efficiently
+- point to the document directly
+- improves query performance
+
+  - speed up queries, reduce disk I/O
+  - reduce resources required,
+  - support equality matches and range-based operations and return sorted results
+
+  ### without indexes
+
+  - reads all documents(collection scan)
+  - sorts result in memory
+
+  ### with indexes
+
+  - only fetches the documents identified by the index based on the query
+  - returns result faster
+
+- one default index per collection, which includes \_id field
+- every query should use an index
+- if we insert or update documents, we need to update the index data structure
+- Delete unnecessary or redundant indexes
+
+  ### most common types of indexes
+
+  1. single field : indexes on one field only
+      - index for single field ; support queries and sort on a single field
+      - using the `createIndex()` method here and passing the fieldName and order of indexing(ascending{1} or descending{-1})
+      - `getIndexes()` used to return the created indexes on a collection
+      ```javascript
+      db.collection.createIndex({fieldName : 1}) // indexing created in ascending order
+      ```
+      - `explain()` to see the execution plan, specifying the execution stages:
+        - **IXSCAN** : indicates the query is using an index and what index is being selected
+        - **COLLSACN** : indicates a collection scan is perform, not using any indexes
+        - **FETCH** : indicates documents are being read from the collection
+        - **SORT** : indicates documents are being sorted in memory
+
+  2. compound field : more than one field in the index
+
+  - multikeys indexes operate on array fields
+
+  ```javascript
+  // single field index creation
+  db.customers.createIndex({
+    birthdate: 1,
+  });
+
+  // unique single field creation
+  db.customers.createIndex({
+    email : 1
+  },
+  {
+    unique : true
+  })
+
+  // getIndexes to view the indexex created
+  db.customers.getIndexes()
+
+  // checking if an index is used on a query or not
+  db.customers.explain().find({
+  birthdate: {
+    $gt:ISODate("1995-08-01")
+    }
+  })
+
+  // checking again the execution plan
+  db.customers.explain().find({
+    birthdate : {
+      $gt : ISODate("1995-08-01")
+    }
+  }).sort({
+    email : 1
+  })
+  ```
