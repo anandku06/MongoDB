@@ -636,8 +636,38 @@ db.collection.aggregate([
     $count :  "total_zips" // field name to be total_zips
   }
   ```
-  8. $out : 
-    - writes documents that are returned by an aggregation pipeline into a collection 
-    - must be the last stage 
-    - creates a new collection if it doesn't already exist
-    - if collection exists, it replaces the existing collection with new data
+
+  8. $out :
+
+  - writes documents that are returned by an aggregation pipeline into a collection
+  - must be the last stage
+  - creates a new collection if it doesn't already exist
+  - if collection exists, it replaces the existing collection with new data
+
+  ```javascript
+  // syntax
+  {
+    $out : {
+      db : "dbName",
+      coll : "collectionName"
+    }
+  }
+
+  // if db not given then default takes current db
+  {
+    $out : "collectionName"
+  }
+
+  // example
+  db.collection.aggregate([
+    {
+      $match : {},
+    },
+    {
+      $group : {}
+    },
+    {
+      $out : {}
+    }
+  ])
+  ```
