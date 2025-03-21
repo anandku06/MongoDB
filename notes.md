@@ -701,21 +701,76 @@ db.collection.aggregate([
   ### most common types of indexes
 
   1. single field : indexes on one field only
-      - index for single field ; support queries and sort on a single field
-      - using the `createIndex()` method here and passing the fieldName and order of indexing(ascending{1} or descending{-1})
-      - `getIndexes()` used to return the created indexes on a collection
-      ```javascript
-      db.collection.createIndex({fieldName : 1}) // indexing created in ascending order
-      ```
-      - `explain()` to see the execution plan, specifying the execution stages:
-        - **IXSCAN** : indicates the query is using an index and what index is being selected
-        - **COLLSACN** : indicates a collection scan is perform, not using any indexes
-        - **FETCH** : indicates documents are being read from the collection
-        - **SORT** : indicates documents are being sorted in memory
 
-  2. compound field : more than one field in the index
+     - index for single field ; support queries and sort on a single field
+     - using the `createIndex()` method here and passing the fieldName and order of indexing(ascending{1} or descending{-1})
+     - `getIndexes()` used to return the created indexes on a collection
 
-  - multikeys indexes operate on array fields
+     ```javascript
+     db.collection.createIndex({ fieldName: 1 }); // indexing created in ascending order
+     ```
+
+     - `explain()` to see the execution plan, specifying the execution stages:
+       - **IXSCAN** : indicates the query is using an index and what index is being selected
+       - **COLLSACN** : indicates a collection scan is perform, not using any indexes
+       - **FETCH** : indicates documents are being read from the collection
+       - **SORT** : indicates documents are being sorted in memory
+
+  2. compound field :
+
+     - more than one field in the index; can be multikey index if it includes an array field; maximum of one array field per index
+     - support queries that match on the prefix of the index fields
+     - order of the fields in compound index matters; follow this order : equality, sort, range
+     - sort order of the field values in the index matters
+       1. _Equality_ predicates :
+       - test exact matches on single field
+       - should be placed first in a compound index
+       - reduces query processing time
+       - retreives fewer documents
+       2. _Sort_ predicate :
+       - determines the order of results
+       - index sort eliminates the need for in-memory sorts
+       - sort order is important if query results are sorted by more than 1 field and they mix sort orders
+
+  ```javascript
+  // creating compound index
+  db.customers.createIndex({
+    active: 1,
+    birthdate: -1,
+    name: 1,
+  });
+
+  // order of fields in compound index
+  db.customers.find({
+    birthDate : {
+      $gte : ISODate('1977-01-01')
+    },
+    {
+      active : true
+    }
+  }).sort({
+    birthDate : -1,
+    name : 1
+  })
+
+  // Covering a query using projections
+  db.customers.explain().find({
+    birthdate : {
+      $gte : ISODate('1977-01-01')
+    },
+    active : true
+  },
+  {
+    name : 1,
+    birthdate : 1,
+    _id : 0
+  }).sort({
+    birthdate : -1,
+    name : 1
+  })
+  ```
+
+  3. multikey indexes : operate on array fields ; can be single field or compound index ; one array field per index
 
   ```javascript
   // single field index creation
@@ -724,29 +779,61 @@ db.collection.aggregate([
   });
 
   // unique single field creation
-  db.customers.createIndex({
-    email : 1
-  },
-  {
-    unique : true
-  })
+  db.customers.createIndex(
+    {
+      email: 1,
+    },
+    {
+      unique: true,
+    }
+  );
 
   // getIndexes to view the indexex created
-  db.customers.getIndexes()
+  db.customers.getIndexes();
 
   // checking if an index is used on a query or not
   db.customers.explain().find({
-  birthdate: {
-    $gt:ISODate("1995-08-01")
-    }
-  })
+    birthdate: {
+      $gt: ISODate("1995-08-01"),
+    },
+  });
 
   // checking again the execution plan
-  db.customers.explain().find({
-    birthdate : {
-      $gt : ISODate("1995-08-01")
-    }
-  }).sort({
-    email : 1
-  })
+  db.customers
+    .explain()
+    .find({
+      birthdate: {
+        $gt: ISODate("1995-08-01"),
+      },
+    })
+    .sort({
+      email: 1,
+    });
   ```
+
+## Deleting Indexes in MongoDB
+
+- indexes improve performance, indexes have a write cost
+- too many indexes in a collection can affect system performance
+- delete redundant or unused indexes.
+- make sure the index not being used
+- deleting an index that's only index supporting the querywill affect the performance of that query
+- recreating an index takes time and resources
+- hide the index before deleting it by : `db.collection.hideIndex(<index>)`
+
+```javascript
+// deleting an index by name
+db.customers.dropIndex("active_1_birthdate_-1_name_1");
+
+// deleting an index with value
+db.customers.dropIndex({
+  active: 1,
+  birthdate: -1,
+  name: 1,
+});
+
+// delete mutiple indexes
+db.collection.dropIndexes(["index1name", "index2name", "index3name"]);
+
+db.collectionName.dropIndexes() // deletes all the indexes except _id one
+```
